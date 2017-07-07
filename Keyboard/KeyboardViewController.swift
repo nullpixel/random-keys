@@ -513,8 +513,6 @@ class KeyboardViewController: UIInputViewController {
     }
     
     func backspaceRepeatCallback() {
-        self.playKeySound()
-        
         self.textDocumentProxy.deleteBackward()
         self.updateCapsIfNeeded()
     }
@@ -680,69 +678,6 @@ class KeyboardViewController: UIInputViewController {
             }
         }
         return true
-    }
-    
-    func shouldAutoCapitalize() -> Bool {
-        if !UserDefaults.standard.bool(forKey: kAutoCapitalization) {
-            return false
-        }
-        
-        let traits = self.textDocumentProxy
-        if let autocapitalization = traits.autocapitalizationType {
-            let documentProxy = self.textDocumentProxy
-            //var beforeContext = documentProxy.documentContextBeforeInput
-            
-            switch autocapitalization {
-            case .none:
-                return false
-            case .words:
-                if let beforeContext = documentProxy.documentContextBeforeInput {
-                    let previousCharacter = beforeContext[beforeContext.characters.index(before: beforeContext.endIndex)]
-                    return self.characterIsWhitespace(previousCharacter)
-                }
-                else {
-                    return true
-                }
-            
-            case .sentences:
-                if let beforeContext = documentProxy.documentContextBeforeInput {
-                    let offset = min(3, beforeContext.characters.count)
-                    var index = beforeContext.endIndex
-                    
-                    for i in 0 ..< offset {
-                        index = beforeContext.index(before: index)
-                        let char = beforeContext[index]
-                        
-                        if characterIsPunctuation(char) {
-                            if i == 0 {
-                                return false //not enough spaces after punctuation
-                            }
-                            else {
-                                return true //punctuation with at least one space after it
-                            }
-                        }
-                        else {
-                            if !characterIsWhitespace(char) {
-                                return false //hit a foreign character before getting to 3 spaces
-                            }
-                            else if characterIsNewline(char) {
-                                return true //hit start of line
-                            }
-                        }
-                    }
-                    
-                    return true //either got 3 spaces or hit start of line
-                }
-                else {
-                    return true
-                }
-            case .allCharacters:
-                return true
-            }
-        }
-        else {
-            return false
-        }
     }
     
     //////////////////////////////////////
