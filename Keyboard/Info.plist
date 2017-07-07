@@ -5,11 +5,11 @@
 	<key>CFBundleDevelopmentRegion</key>
 	<string>en</string>
 	<key>CFBundleDisplayName</key>
-	<string>Catboard</string>
+	<string>RandomKeys</string>
 	<key>CFBundleExecutable</key>
 	<string>${EXECUTABLE_NAME}</string>
 	<key>CFBundleIdentifier</key>
-	<string>$(PRODUCT_BUNDLE_IDENTIFIER)</string>
+	<string>uk.nullpixel.randomkeys.keyboard</string>
 	<key>CFBundleInfoDictionaryVersion</key>
 	<string>6.0</string>
 	<key>CFBundleName</key>
@@ -31,14 +31,14 @@
 			<key>PrefersRightToLeft</key>
 			<false/>
 			<key>PrimaryLanguage</key>
-			<string>en-US</string>
+			<string>en-GB</string>
 			<key>RequestsOpenAccess</key>
 			<true/>
 		</dict>
 		<key>NSExtensionPointIdentifier</key>
 		<string>com.apple.keyboard-service</string>
 		<key>NSExtensionPrincipalClass</key>
-		<string>${PRODUCT_MODULE_NAME}.Catboard</string>
+		<string>${PRODUCT_MODULE_NAME}.RandomKeys</string>
 	</dict>
 </dict>
 </plist>

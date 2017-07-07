@@ -14,11 +14,7 @@ let metrics: [String:Double] = [
 ]
 func metric(_ name: String) -> CGFloat { return CGFloat(metrics[name]!) }
 
-// TODO: move this somewhere else and localize
-let kAutoCapitalization = "kAutoCapitalization"
-let kPeriodShortcut = "kPeriodShortcut"
-let kKeyboardClicks = "kKeyboardClicks"
-let kSmallLowercase = "kSmallLowercase"
+let kClapAsSpace = "kClapAsSpace"
 
 class KeyboardViewController: UIInputViewController {
     
@@ -94,12 +90,6 @@ class KeyboardViewController: UIInputViewController {
     }
     
     override init(nibName nibNameOrNil: String?, bundle nibBundleOrNil: Bundle?) {
-        UserDefaults.standard.register(defaults: [
-            kAutoCapitalization: true,
-            kPeriodShortcut: true,
-            kKeyboardClicks: false,
-            kSmallLowercase: false
-        ])
         
         self.keyboard = defaultKeyboard()
         
@@ -217,7 +207,7 @@ class KeyboardViewController: UIInputViewController {
         }
         else {
             let uppercase = self.shiftState.uppercase()
-            let characterUppercase = (UserDefaults.standard.bool(forKey: kSmallLowercase) ? uppercase : true)
+            let characterUppercase = true
             
             self.forwardingView.frame = orientationSavvyBounds
             self.layout?.layoutKeys(self.currentMode, uppercase: uppercase, characterUppercase: characterUppercase, shiftState: self.shiftState)
@@ -379,10 +369,6 @@ class KeyboardViewController: UIInputViewController {
                                               action: #selector(KeyboardViewController.unHighlightKey(_:)),
                                               for: [.touchUpInside, .touchUpOutside, .touchDragOutside, .touchDragExit, .touchCancel])
                         }
-                        
-                        keyView.addTarget(self,
-                                          action: #selector(KeyboardViewController.playKeySound),
-                                          for: .touchDown)
                     }
                 }
             }
@@ -495,66 +481,9 @@ class KeyboardViewController: UIInputViewController {
             // auto period on double space
             // TODO: timeout
             
-            self.handleAutoPeriod(model)
-            // TODO: reset context
         }
         
         self.updateCapsIfNeeded()
-    }
-    
-    func handleAutoPeriod(_ key: Key) {
-        if !UserDefaults.standard.bool(forKey: kPeriodShortcut) {
-            return
-        }
-        
-        if self.autoPeriodState == .firstSpace {
-            if key.type != Key.KeyType.space {
-                self.autoPeriodState = .noSpace
-                return
-            }
-            
-            let charactersAreInCorrectState = { () -> Bool in
-                let previousContext = self.textDocumentProxy.documentContextBeforeInput
-                
-                if previousContext == nil || (previousContext!).characters.count < 3 {
-                    return false
-                }
-                
-                var index = previousContext!.endIndex
-                
-                index = previousContext!.index(before: index)
-                if previousContext![index] != " " {
-                    return false
-                }
-                
-                index = previousContext!.index(before: index)
-                if previousContext![index] != " " {
-                    return false
-                }
-                
-                index = previousContext!.index(before: index)
-                let char = previousContext![index]
-                if self.characterIsWhitespace(char) || self.characterIsPunctuation(char) || char == "," {
-                    return false
-                }
-                
-                return true
-            }()
-            
-            if charactersAreInCorrectState {
-                self.textDocumentProxy.deleteBackward()
-                self.textDocumentProxy.deleteBackward()
-                self.textDocumentProxy.insertText(".")
-                self.textDocumentProxy.insertText(" ")
-            }
-            
-            self.autoPeriodState = .noSpace
-        }
-        else {
-            if key.type == Key.KeyType.space {
-                self.autoPeriodState = .firstSpace
-            }
-        }
     }
     
     func cancelBackspaceTimers() {
@@ -655,7 +584,7 @@ class KeyboardViewController: UIInputViewController {
     }
     
     func updateKeyCaps(_ uppercase: Bool) {
-        let characterUppercase = (UserDefaults.standard.bool(forKey: kSmallLowercase) ? uppercase : true)
+        let characterUppercase = true
         self.layout?.updateKeyCaps(false, uppercase: uppercase, characterUppercase: characterUppercase, shiftState: self.shiftState)
     }
     
@@ -671,7 +600,7 @@ class KeyboardViewController: UIInputViewController {
         self.shiftWasMultitapped = false
         
         let uppercase = self.shiftState.uppercase()
-        let characterUppercase = (UserDefaults.standard.bool(forKey: kSmallLowercase) ? uppercase : true)
+        let characterUppercase = true
         self.layout?.layoutKeys(mode, uppercase: uppercase, characterUppercase: characterUppercase, shiftState: self.shiftState)
         
         self.setupKeys()
@@ -719,25 +648,13 @@ class KeyboardViewController: UIInputViewController {
     }
     
     func updateCapsIfNeeded() {
-        if self.shouldAutoCapitalize() {
-            switch self.shiftState {
-            case .disabled:
-                self.shiftState = .enabled
-            case .enabled:
-                self.shiftState = .enabled
-            case .locked:
-                self.shiftState = .locked
-            }
-        }
-        else {
-            switch self.shiftState {
-            case .disabled:
-                self.shiftState = .disabled
-            case .enabled:
-                self.shiftState = .disabled
-            case .locked:
-                self.shiftState = .locked
-            }
+        switch self.shiftState {
+        case .disabled:
+            self.shiftState = .disabled
+        case .enabled:
+            self.shiftState = .disabled
+        case .locked:
+            self.shiftState = .locked
         }
     }
     
@@ -826,17 +743,6 @@ class KeyboardViewController: UIInputViewController {
         else {
             return false
         }
-    }
-    
-    // this only works if full access is enabled
-    func playKeySound() {
-        if !UserDefaults.standard.bool(forKey: kKeyboardClicks) {
-            return
-        }
-        
-        DispatchQueue.global(qos: .default).async(execute: {
-            AudioServicesPlaySystemSound(1104)
-        })
     }
     
     //////////////////////////////////////
